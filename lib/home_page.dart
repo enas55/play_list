@@ -28,6 +28,7 @@ class _HomePageState extends State<HomePage> {
     assetsAudioPlayer.open(
       Playlist(audios: playlist),
       autoStart: false,
+      loopMode: LoopMode.playlist,
     );
     setState(() {});
   }

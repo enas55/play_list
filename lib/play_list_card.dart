@@ -21,22 +21,23 @@ class _PlayListCardState extends State<PlayListCard> {
 
   @override
   void initState() {
+    isPlaying = false;
+    isCurrent = false;
     playSongs();
     super.initState();
   }
 
   void playSongs() {
-    isPlaying = false;
-    isCurrent = false;
-
-    widget.assetsAudioPlayer.isPlaying.listen((isPlaying) {
-      isPlaying = isPlaying;
-      setState(() {});
+    widget.assetsAudioPlayer.isPlaying.listen((playing) {
+      setState(() {
+        isPlaying = playing;
+      });
     });
 
-    widget.assetsAudioPlayer.current.listen((current) {
-      isCurrent = current?.audio.audio.path == widget.audio.path;
-      setState(() {});
+    widget.assetsAudioPlayer.current.listen((playingAudio) {
+      setState(() {
+        isCurrent = playingAudio?.audio.assetAudioPath == widget.audio.path;
+      });
     });
   }
 
@@ -50,18 +51,19 @@ class _PlayListCardState extends State<PlayListCard> {
               ? widget.audio.metas.title ?? 'Add your songs'
               : widget.audio.metas.title ?? '',
         ),
-        subtitle: StreamBuilder(
-          stream: widget.assetsAudioPlayer.realtimePlayingInfos,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            }
-
-            return Text(
-              '${convertToSeconds(snapshot.data?.currentPosition.inSeconds ?? 0)} / ${convertToSeconds(snapshot.data?.duration.inSeconds ?? 0)}',
-            );
-          },
-        ),
+        subtitle: isCurrent
+            ? StreamBuilder(
+                stream: widget.assetsAudioPlayer.realtimePlayingInfos,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data == null) {
+                    return const Text('00:00 / 00:00');
+                  }
+                  return Text(
+                    '${convertToSeconds(snapshot.data!.currentPosition.inSeconds)} / ${convertToSeconds(snapshot.data!.duration.inSeconds)}',
+                  );
+                },
+              )
+            : const Text('00:00 / 00:00'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
